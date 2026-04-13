@@ -176,14 +176,14 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/setup') {
     let body=''; req.on('data',c=>body+=c); req.on('end', async()=>{
       try {
-        const { name, github_org, github_token, repos: repoList } = JSON.parse(body);
+        const { name, github_org, github_token, manager_password, repos: repoList } = JSON.parse(body);
         if (!name || !github_org || !github_token) { res.writeHead(400, jsonHead); res.end('{"error":"Missing fields"}'); return; }
 
         // Validate GitHub token
         const valid = await gh.validateToken(github_token, github_org);
 
         const companyId = genId();
-        db.prepare('INSERT INTO companies (id, name, github_org, github_token) VALUES (?,?,?,?)').run(companyId, name, github_org, github_token);
+        db.prepare('INSERT INTO companies (id, name, github_org, github_token, manager_password) VALUES (?,?,?,?,?)').run(companyId, name, github_org, github_token, manager_password || '');
 
         // Add repos
         if (repoList && repoList.length) {
@@ -278,6 +278,20 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, jsonHead);
         res.end(JSON.stringify({ success: true }));
       } catch(e) { res.writeHead(400, jsonHead); res.end('{}'); }
+    }); return;
+  }
+
+  // Verify manager password
+  if (req.method === 'POST' && url.pathname === '/api/verify-manager') {
+    let body=''; req.on('data',c=>body+=c); req.on('end',()=>{
+      try {
+        const { companyId, password } = JSON.parse(body);
+        const company = db.prepare('SELECT manager_password FROM companies WHERE id=?').get(companyId);
+        if (!company) { res.writeHead(404, jsonHead); res.end('{"error":"not found"}'); return; }
+        const ok = !company.manager_password || company.manager_password === password;
+        res.writeHead(200, jsonHead);
+        res.end(JSON.stringify({ success: ok }));
+      } catch(e) { res.writeHead(400, jsonHead); res.end('{"success":false}'); }
     }); return;
   }
 

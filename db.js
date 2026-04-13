@@ -13,6 +13,7 @@ db.exec(`
     name TEXT NOT NULL,
     github_org TEXT NOT NULL,
     github_token TEXT NOT NULL,
+    manager_password TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now','localtime'))
   );
 

@@ -78,6 +78,12 @@ body{font-family:'Inter',sans-serif;background:#f9fafb;color:#111827;min-height:
         <div class="hint">Need a token? <a href="https://github.com/settings/tokens/new?scopes=repo,admin:org" target="_blank" style="color:#d97706">Generate one here ↗</a> — select "repo" scope</div>
       </div>
 
+      <div class="fg">
+        <label>Manager Password</label>
+        <input type="password" id="s-password" placeholder="Set password for Manager Dashboard"/>
+        <div class="hint">Anyone with this password can access the Manager Dashboard (approve/reject, view all data)</div>
+      </div>
+
       <div id="s1-status"></div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="step1Next()">Connect & Fetch Repos →</button>
@@ -144,7 +150,8 @@ async function step1Next() {
   if (!name||!org||!token) { status.innerHTML='<div class="error">Fill all fields</div>'; return; }
 
   status.innerHTML='<div class="loading">Connecting to GitHub...</div>';
-  companyData = { name, org, token };
+  const password = document.getElementById('s-password').value.trim();
+  companyData = { name, org, token, password };
 
   try {
     const res = await fetch('/api/list-repos', {
@@ -200,7 +207,7 @@ async function step2Next() {
   try {
     const res = await fetch('/api/setup', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name: companyData.name, github_org: companyData.org, github_token: companyData.token, repos })
+      body: JSON.stringify({ name: companyData.name, github_org: companyData.org, github_token: companyData.token, manager_password: companyData.password, repos })
     });
     const t = await res.text(); const d = JSON.parse(t);
 
