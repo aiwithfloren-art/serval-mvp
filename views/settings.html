@@ -39,6 +39,97 @@ h2{font-size:20px;font-weight:700;margin-bottom:4px}
   </div>
 
   <div class="card">
+    <h3>Integrations</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px">
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🐙</div>
+        <div style="font-size:13px;font-weight:600">GitHub</div>
+        <div style="font-size:10px;color:#059669;margin-top:4px;font-weight:500">✓ Connected</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onclick="connectTelegram()">
+        <div style="font-size:22px;margin-bottom:6px">📨</div>
+        <div style="font-size:13px;font-weight:600">Telegram</div>
+        <div style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500" id="tg-status">Click to connect</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onclick="connectSlack()">
+        <div style="font-size:22px;margin-bottom:6px">💬</div>
+        <div style="font-size:13px;font-weight:600">Slack</div>
+        <div style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500" id="slack-status">Click to connect</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onclick="connectJira()">
+        <div style="font-size:22px;margin-bottom:6px">📋</div>
+        <div style="font-size:13px;font-weight:600">Jira</div>
+        <div style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500" id="jira-status">Click to connect</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onclick="connectGWS()">
+        <div style="font-size:22px;margin-bottom:6px">📧</div>
+        <div style="font-size:13px;font-weight:600">Google Workspace</div>
+        <div style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500" id="gws-status">Click to connect</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;cursor:pointer" onclick="connectNotion()">
+        <div style="font-size:22px;margin-bottom:6px">📝</div>
+        <div style="font-size:13px;font-weight:600">Notion</div>
+        <div style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500" id="notion-status">Click to connect</div>
+      </div>
+    </div>
+
+    <!-- TELEGRAM SETUP (expandable) -->
+    <div id="tg-setup" style="display:none;margin-top:12px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Connect Telegram</div>
+      <div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.6">
+        1. Open Telegram, search <b>@BotFather</b><br>
+        2. Send <code>/newbot</code>, follow steps<br>
+        3. Copy the Bot Token and paste below
+      </div>
+      <input type="text" id="tg-token" placeholder="Bot token from @BotFather" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:6px"/>
+      <input type="text" id="tg-chatid" placeholder="Chat ID (send /start to your bot, then check)" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:8px"/>
+      <button onclick="saveTelegram()" class="btn btn-primary" style="font-size:12px;padding:6px 14px">Save</button>
+      <span id="tg-result" style="font-size:11px;margin-left:8px"></span>
+    </div>
+
+    <!-- SLACK SETUP -->
+    <div id="slack-setup" style="display:none;margin-top:12px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Connect Slack</div>
+      <div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.6">
+        1. Go to <a href="https://api.slack.com/apps" target="_blank" style="color:#d97706">api.slack.com/apps</a><br>
+        2. Create New App → From Scratch<br>
+        3. Add Bot Token Scopes: <code>chat:write</code><br>
+        4. Install to workspace, copy Bot Token
+      </div>
+      <input type="text" id="slack-token" placeholder="xoxb-xxxx Bot Token" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:6px"/>
+      <input type="text" id="slack-channel" placeholder="Channel ID (e.g. C01ABCDEF)" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:8px"/>
+      <button onclick="saveSlack()" class="btn btn-primary" style="font-size:12px;padding:6px 14px">Save</button>
+      <span id="slack-result" style="font-size:11px;margin-left:8px"></span>
+    </div>
+
+    <!-- JIRA SETUP -->
+    <div id="jira-setup" style="display:none;margin-top:12px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Connect Jira</div>
+      <div style="font-size:12px;color:#4b5563;margin-bottom:8px;line-height:1.6">
+        1. Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" style="color:#d97706">Atlassian API Tokens</a><br>
+        2. Create API Token<br>
+        3. Enter your Jira domain + email + token below
+      </div>
+      <input type="text" id="jira-domain" placeholder="yourcompany.atlassian.net" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:6px"/>
+      <input type="text" id="jira-email" placeholder="your@email.com" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:6px"/>
+      <input type="text" id="jira-token" placeholder="API Token" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:6px"/>
+      <input type="text" id="jira-project" placeholder="Project key (e.g. IT, OPS)" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;margin-bottom:8px"/>
+      <button onclick="saveJira()" class="btn btn-primary" style="font-size:12px;padding:6px 14px">Save</button>
+      <span id="jira-result" style="font-size:11px;margin-left:8px"></span>
+    </div>
+
+    <!-- GOOGLE WORKSPACE / NOTION -->
+    <div id="gws-setup" style="display:none;margin-top:12px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Google Workspace</div>
+      <div style="font-size:12px;color:#4b5563;line-height:1.6">Coming soon — real user provisioning (create/disable Google accounts, reset passwords).<br><br>Join waitlist: email us at hello@serval.id</div>
+    </div>
+    <div id="notion-setup" style="display:none;margin-top:12px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Notion</div>
+      <div style="font-size:12px;color:#4b5563;line-height:1.6">Coming soon — manage page access and workspace permissions.<br><br>Join waitlist: email us at hello@serval.id</div>
+    </div>
+  </div>
+
+  <div class="card">
     <h3>Company Info</h3>
     <div style="font-size:13px;color:#4b5563;line-height:2" id="company-info">Loading...</div>
   </div>
@@ -104,6 +195,66 @@ async function saveSettings(){
   }catch(e){status.textContent='Error';status.style.color='#dc2626';status.style.display='block';}
 }
 
+// Integration toggles
+function connectTelegram(){document.getElementById('tg-setup').style.display=document.getElementById('tg-setup').style.display==='none'?'block':'none';}
+function connectSlack(){document.getElementById('slack-setup').style.display=document.getElementById('slack-setup').style.display==='none'?'block':'none';}
+function connectJira(){document.getElementById('jira-setup').style.display=document.getElementById('jira-setup').style.display==='none'?'block':'none';}
+function connectGWS(){document.getElementById('gws-setup').style.display=document.getElementById('gws-setup').style.display==='none'?'block':'none';}
+function connectNotion(){document.getElementById('notion-setup').style.display=document.getElementById('notion-setup').style.display==='none'?'block':'none';}
+
+async function saveTelegram(){
+  const token=document.getElementById('tg-token').value.trim();
+  const chatId=document.getElementById('tg-chatid').value.trim();
+  if(!token){document.getElementById('tg-result').textContent='Enter token';return;}
+  // Test bot
+  try{
+    const res=await fetch('https://api.telegram.org/bot'+token+'/getMe');
+    const t=await res.text();const d=JSON.parse(t);
+    if(d.ok){
+      localStorage.setItem('serval_tg_'+companyId, JSON.stringify({token,chatId}));
+      document.getElementById('tg-status').textContent='✓ Connected';
+      document.getElementById('tg-status').style.color='#059669';
+      document.getElementById('tg-result').textContent='✅ Bot @'+d.result.username+' connected!';
+      document.getElementById('tg-result').style.color='#059669';
+    } else {
+      document.getElementById('tg-result').textContent='❌ Invalid token';
+      document.getElementById('tg-result').style.color='#dc2626';
+    }
+  }catch(e){document.getElementById('tg-result').textContent='❌ Error';document.getElementById('tg-result').style.color='#dc2626';}
+}
+
+function saveSlack(){
+  const token=document.getElementById('slack-token').value.trim();
+  const channel=document.getElementById('slack-channel').value.trim();
+  if(!token){document.getElementById('slack-result').textContent='Enter token';return;}
+  localStorage.setItem('serval_slack_'+companyId, JSON.stringify({token,channel}));
+  document.getElementById('slack-status').textContent='✓ Connected';
+  document.getElementById('slack-status').style.color='#059669';
+  document.getElementById('slack-result').textContent='✅ Saved!';
+  document.getElementById('slack-result').style.color='#059669';
+}
+
+function saveJira(){
+  const domain=document.getElementById('jira-domain').value.trim();
+  const email=document.getElementById('jira-email').value.trim();
+  const token=document.getElementById('jira-token').value.trim();
+  const project=document.getElementById('jira-project').value.trim();
+  if(!domain||!token){document.getElementById('jira-result').textContent='Fill required fields';return;}
+  localStorage.setItem('serval_jira_'+companyId, JSON.stringify({domain,email,token,project}));
+  document.getElementById('jira-status').textContent='✓ Connected';
+  document.getElementById('jira-status').style.color='#059669';
+  document.getElementById('jira-result').textContent='✅ Saved!';
+  document.getElementById('jira-result').style.color='#059669';
+}
+
+// Load saved integrations
+function loadIntegrations(){
+  if(localStorage.getItem('serval_tg_'+companyId)){document.getElementById('tg-status').textContent='✓ Connected';document.getElementById('tg-status').style.color='#059669';}
+  if(localStorage.getItem('serval_slack_'+companyId)){document.getElementById('slack-status').textContent='✓ Connected';document.getElementById('slack-status').style.color='#059669';}
+  if(localStorage.getItem('serval_jira_'+companyId)){document.getElementById('jira-status').textContent='✓ Connected';document.getElementById('jira-status').style.color='#059669';}
+}
+
 loadSettings();
+loadIntegrations();
 </script>
 </body></html>
