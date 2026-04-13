@@ -331,6 +331,7 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });
 
   if (view === '/setup') { res.end(fs.readFileSync(path.join(__dirname, 'views/setup.html'), 'utf8')); return; }
+  if (view === '/login') { res.end(fs.readFileSync(path.join(__dirname, 'views/login.html'), 'utf8')); return; }
   if (view.startsWith('/app/')) {
     const companyId = view.split('/')[2];
     const subpage = view.split('/')[3] || 'chat';
