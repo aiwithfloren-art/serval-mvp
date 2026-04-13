@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Serval — Access Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--bg2:#f9fafb;--border:#e5e7eb;--text:#111827;--text2:#4b5563;--text3:#9ca3af;--accent:#d97706;--green:#059669;--red:#dc2626;--blue:#2563eb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg2);color:var(--text);height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.header{background:var(--bg);padding:10px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.header .dot{width:8px;height:8px;background:var(--accent);border-radius:2px}
+.header a{margin-left:auto;font-size:11px;color:var(--text2);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:6px}
+.main{flex:1;display:flex;overflow:hidden}
+.chat{flex:1;display:flex;flex-direction:column;background:var(--bg)}
+
+/* REGISTER */
+.register{position:fixed;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:100}
+.register-box{background:var(--bg);border-radius:14px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.register-box h2{font-size:18px;font-weight:700;margin-bottom:12px}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:12px;color:var(--text2);margin-bottom:3px;font-weight:500}
+.fg input,.fg select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.fg .hint{font-size:10px;color:var(--text3);margin-top:2px}
+.btn-reg{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px}
+.hidden{display:none}
+
+/* USER BAR */
+.user-bar{padding:6px 20px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:12px}
+.user-bar .name{font-weight:600}.user-bar .div{color:var(--accent)}.user-bar .gh{color:var(--text3)}
+.user-bar .logout{margin-left:auto;color:var(--red);cursor:pointer;font-size:11px}
+
+/* MESSAGES */
+.msgs{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;max-width:680px;width:100%;margin:0 auto}
+.msg-row{display:flex;gap:8px;animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-row.user{justify-content:flex-end}
+.msg-row .av{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:#fffbeb;color:var(--accent);border:1px solid #fde68a;flex-shrink:0;margin-top:2px}
+.msg{max-width:520px;font-size:13px;line-height:1.6}
+.msg-row.user .msg{background:var(--text);color:#fff;padding:8px 13px;border-radius:14px;border-bottom-right-radius:4px}
+.msg b{color:var(--text)}.msg a{color:var(--blue)}
+.msg .tref{display:inline-block;margin-top:5px;padding:2px 9px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;font-size:10px;color:var(--text3)}
+.msg .meta{display:flex;gap:5px;margin-top:6px;font-size:10px}
+.msg .meta span{padding:2px 7px;border-radius:5px;font-weight:500}
+.msg .meta .intent{background:#eff6ff;color:var(--blue)}.msg .meta .time{background:#ecfdf5;color:var(--green)}
+.typing{display:none;gap:8px}.typing .av{width:24px;height:24px;border-radius:7px;background:#fffbeb;border:1px solid #fde68a;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--accent);font-weight:600}
+.typing-dots{display:flex;gap:3px;padding:8px}
+.typing-dots span{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:tb 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.15s}.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes tb{0%,100%{opacity:.3}50%{opacity:1;transform:translateY(-4px)}}
+.sugg{padding:5px 20px;display:flex;gap:5px;flex-wrap:wrap;max-width:680px;margin:0 auto;width:100%}
+.sugg button{padding:5px 11px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);border-radius:16px;font-size:11px;cursor:pointer;font-family:inherit}
+.sugg button:hover{border-color:var(--accent);color:var(--accent)}
+.input-bar{padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:7px;max-width:680px;margin:0 auto;width:100%}
+.input-bar input{flex:1;padding:9px 13px;border:1px solid var(--border);border-radius:10px;font-size:13px;outline:none;font-family:inherit}
+.input-bar input:focus{border-color:var(--accent)}
+.input-bar button{padding:9px 18px;background:var(--text);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* SIDEBAR */
+.sidebar{width:280px;background:var(--bg);border-left:1px solid var(--border);overflow-y:auto;font-size:12px}
+.sidebar h3{padding:10px 14px;font-size:11px;font-weight:600;border-bottom:1px solid var(--border);color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.repo-card{padding:8px 14px;border-bottom:1px solid var(--bg2)}
+.repo-card .rname{font-weight:600}.repo-card .rdept{color:var(--text3);font-size:10px}
+.repo-card a{color:var(--blue);font-size:10px;text-decoration:none}
+.repo-card .no-access{color:var(--red);font-size:10px}
+.log-item{padding:6px 14px;border-bottom:1px solid var(--bg2);font-size:11px;display:flex;gap:6px;align-items:center}
+.log-item .action{padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;flex-shrink:0}
+.log-item .action.granted{background:#ecfdf5;color:var(--green)}.log-item .action.revoked{background:#fef2f2;color:var(--red)}
+.empty{padding:16px;text-align:center;color:var(--text3);font-size:11px}
+</style></head><body>
+
+<div class="header">
+  <div class="dot"></div>
+  <span id="company-name">Serval</span>
+  <a id="mgr-link" href="#">Manager View</a>
+</div>
+
+<div class="register" id="registerOverlay">
+  <div class="register-box">
+    <h2 id="reg-title">Join Company</h2>
+    <div class="fg"><label>Full Name</label><input id="r-name" placeholder="Your name"/></div>
+    <div class="fg"><label>Email</label><input id="r-email" type="email" placeholder="you@company.com"/></div>
+    <div class="fg"><label>Division</label><select id="r-division"><option value="">— Select —</option><option>Engineering</option><option>Marketing</option><option>Data</option><option>Design</option><option>HR</option><option>Finance</option></select></div>
+    <div class="fg"><label>GitHub Username</label><input id="r-github" placeholder="without @"/><div class="hint">Your real GitHub — you'll get actual repo invitations</div></div>
+    <button class="btn-reg" onclick="register()">Start →</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="chat">
+    <div class="user-bar hidden" id="userBar"><span class="name" id="u-name"></span><span class="div" id="u-div"></span><span class="gh" id="u-gh"></span><span class="logout" onclick="logout()">Switch ↻</span></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="typing" id="typing"><div class="av">S</div><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    <div class="sugg hidden" id="sugg"></div>
+    <div class="input-bar hidden" id="inputBar"><input type="text" id="inp" placeholder="minta akses [repo]..." autocomplete="off"/><button onclick="send()">Send</button></div>
+  </div>
+  <div class="sidebar">
+    <h3>Repos</h3><div id="repos"></div>
+    <h3>Access Log</h3><div id="logList"><div class="empty">No changes yet</div></div>
+  </div>
+</div>
+
+<script>
+// Get companyId from URL: /app/{companyId}/chat
+const pathParts = window.location.pathname.split('/');
+const companyId = pathParts[2] || '';
+let sessionId = localStorage.getItem('serval_sess_'+companyId) || null;
+let savedUser = null;
+try { savedUser = JSON.parse(localStorage.getItem('serval_user_'+companyId)); } catch(e){}
+
+const inp=document.getElementById('inp'),msgs=document.getElementById('msgs'),typing=document.getElementById('typing');
+inp?.addEventListener('keypress',e=>{if(e.key==='Enter')send()});
+
+// Set manager link
+document.getElementById('mgr-link').href='/app/'+companyId+'/manager';
+
+// Load company info
+async function loadCompany(){
+  try{
+    const res=await fetch('/api/data?companyId='+companyId);
+    const t=await res.text();const d=JSON.parse(t);
+    if(d.company){
+      document.getElementById('company-name').textContent=d.company.name;
+      document.getElementById('reg-title').textContent='Join '+d.company.name;
+      // Build suggestion buttons from repos
+      const sugg=document.getElementById('sugg');
+      sugg.innerHTML='';
+      d.company.repos.forEach(r=>{
+        const btn=document.createElement('button');
+        btn.textContent='Akses '+r.key;
+        btn.onclick=()=>{inp.value='minta akses '+r.key;inp.focus()};
+        sugg.appendChild(btn);
+      });
+      const statusBtn=document.createElement('button');statusBtn.textContent='Cek status';statusBtn.onclick=()=>{inp.value='status';inp.focus()};sugg.appendChild(statusBtn);
+      const revokeBtn=document.createElement('button');revokeBtn.textContent='Revoke all';revokeBtn.onclick=()=>{inp.value='revoke semua';inp.focus()};sugg.appendChild(revokeBtn);
+    }
+    refreshSidebar(d);
+  }catch(e){}
+}
+
+async function refreshSidebar(d){
+  if(!d){
+    try{const res=await fetch('/api/data?companyId='+companyId);const t=await res.text();d=JSON.parse(t);}catch(e){return;}
+  }
+  const rp=document.getElementById('repos');rp.innerHTML='';
+  const ghUser=document.getElementById('u-gh')?.textContent?.replace('@','')||savedUser?.github||'';
+  const grants=new Set((d.accessLog||[]).filter(l=>l.github===ghUser&&l.action==='GRANTED').map(l=>l.repo_key));
+  const revokes=new Set((d.accessLog||[]).filter(l=>l.github===ghUser&&l.action==='REVOKED').map(l=>l.repo_key));
+  (d.company?.repos||[]).forEach(r=>{
+    const has=grants.has(r.key)&&!revokes.has(r.key);
+    rp.innerHTML+='<div class="repo-card" style="'+(has?'':'opacity:.5')+'"><div class="rname">'+(has?'🔓':'🔒')+' '+r.key+'</div><div class="rdept">'+JSON.parse(r.departments).join(', ')+'</div>'+(has?'<a href="https://github.com/'+d.company.github_org+'/'+r.github_name+'" target="_blank">Open on GitHub ↗</a>':'<span class="no-access">No access</span>')+'</div>';
+  });
+  const lg=document.getElementById('logList');
+  if(d.accessLog?.length){lg.innerHTML='';d.accessLog.slice(0,15).forEach(l=>{
+    lg.innerHTML+='<div class="log-item"><span class="action '+(l.action==='GRANTED'?'granted':'revoked')+'">'+l.action+'</span><span>@'+l.github+' → '+l.repo_key+'</span></div>';
+  });}
+}
+
+function showChat(name,div,github,restore){
+  document.getElementById('registerOverlay').classList.add('hidden');
+  document.getElementById('userBar').classList.remove('hidden');
+  document.getElementById('inputBar').classList.remove('hidden');
+  document.getElementById('sugg').classList.remove('hidden');
+  document.getElementById('u-name').textContent=name;
+  document.getElementById('u-div').textContent=div;
+  document.getElementById('u-gh').textContent='@'+github;
+  const saved=localStorage.getItem('serval_chat_'+companyId);
+  if(restore&&saved){msgs.innerHTML=saved;}
+  else if(!msgs.children.length){msgs.innerHTML='<div class="msg-row bot"><div class="av">S</div><div class="msg">Welcome <b>'+name+'</b>! ('+div+', @'+github+')<br><br>Chat to request repo access, or click buttons below.</div></div>';}
+  refreshSidebar();
+}
+
+if(sessionId&&savedUser){
+  showChat(savedUser.name,savedUser.division,savedUser.github,true);
+  fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...savedUser,companyId})}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(d.success){sessionId=d.sessionId;localStorage.setItem('serval_sess_'+companyId,sessionId);}}).catch(()=>{});
+}
+
+async function register(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const division=document.getElementById('r-division').value;
+  const github=document.getElementById('r-github').value.trim().replace('@','');
+  if(!name||!division||!github){alert('Fill all fields');return;}
+  try{
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,division,github,companyId})});
+    const t=await res.text();const d=JSON.parse(t);
+    if(d.success){
+      sessionId=d.sessionId;
+      localStorage.setItem('serval_sess_'+companyId,sessionId);
+      localStorage.setItem('serval_user_'+companyId,JSON.stringify({name,email,division,github}));
+      showChat(name,division,github,false);
+    }
+  }catch(e){alert('Error');}
+}
+
+function logout(){
+  sessionId=null;localStorage.removeItem('serval_sess_'+companyId);localStorage.removeItem('serval_user_'+companyId);localStorage.removeItem('serval_chat_'+companyId);
+  document.getElementById('registerOverlay').classList.remove('hidden');
+  document.getElementById('userBar').classList.add('hidden');document.getElementById('inputBar').classList.add('hidden');document.getElementById('sugg').classList.add('hidden');
+  msgs.innerHTML='';
+}
+
+async function send(){
+  const t=inp.value.trim();if(!t||!sessionId)return;inp.value='';
+  msgs.appendChild(Object.assign(document.createElement('div'),{className:'msg-row user',innerHTML:'<div class="msg">'+t+'</div>'}));
+  typing.style.display='flex';msgs.scrollTop=msgs.scrollHeight;
+  await new Promise(r=>setTimeout(r,300));
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,sessionId,companyId})});
+    const _t=await res.text();const d=JSON.parse(_t);typing.style.display='none';
+    const b=document.createElement('div');b.className='msg-row bot';
+    b.innerHTML='<div class="av">S</div><div class="msg">'+d.response.replace(/\n/g,'<br>')+'<div class="meta"><span class="intent">'+d.intent+'</span><span class="time">'+d.processingTime+'ms</span></div></div>';
+    msgs.appendChild(b);
+    localStorage.setItem('serval_chat_'+companyId,msgs.innerHTML);
+    refreshSidebar();
+    if(['Access Granted','Access Denied','Offboarding','Revoked','Pending Approval'].includes(d.intent)){setTimeout(()=>refreshSidebar(),1000);setTimeout(()=>refreshSidebar(),3000);setTimeout(()=>refreshSidebar(),5000);}
+  }catch(e){typing.style.display='none';}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Notification polling
+async function checkNotifs(){
+  if(!sessionId)return;
+  const gh=savedUser?.github||document.getElementById('u-gh')?.textContent?.replace('@','')||'';
+  try{
+    const res=await fetch('/api/notifications?companyId='+companyId+'&sessionId='+sessionId+'&github='+gh);
+    const _t=await res.text();const d=JSON.parse(_t);
+    if(d.notifications?.length){d.notifications.forEach(n=>{
+      const nr=document.createElement('div');nr.className='msg-row bot';
+      nr.innerHTML='<div class="av" style="background:#ecfdf5;color:#059669;border-color:#a7f3d0">🔔</div><div class="msg" style="background:#ecfdf5;border:1px solid #a7f3d0;padding:8px 12px;border-radius:12px;font-size:12px">'+n.message+'</div>';
+      msgs.appendChild(nr);msgs.scrollTop=msgs.scrollHeight;
+    });localStorage.setItem('serval_chat_'+companyId,msgs.innerHTML);refreshSidebar();}
+  }catch(e){}
+}
+
+loadCompany();
+setInterval(checkNotifs,2000);
+setInterval(()=>refreshSidebar(),10000);
+</script>
+</body></html>

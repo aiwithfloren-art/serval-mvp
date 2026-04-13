@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Serval — Manager Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--bg2:#f9fafb;--border:#e5e7eb;--text:#111827;--text2:#4b5563;--text3:#9ca3af;--accent:#d97706;--green:#059669;--red:#dc2626;--blue:#2563eb}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:var(--bg);padding:10px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.header .dot{width:8px;height:8px;background:var(--accent);border-radius:2px}
+.header a{margin-left:auto;font-size:11px;color:var(--text2);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:6px}
+.page{max-width:1000px;margin:0 auto;padding:20px}
+h2{font-size:20px;font-weight:700;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat .num{font-size:26px;font-weight:800;letter-spacing:-1px}
+.stat .label{font-size:10px;color:var(--text3);text-transform:uppercase;margin-top:3px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.panel{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.panel-head{padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.panel-head .count{font-size:11px;color:var(--text3);background:var(--bg2);padding:1px 8px;border-radius:5px}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{text-align:left;padding:8px 12px;color:var(--text3);border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;background:var(--bg2)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--bg2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600}
+.badge.ok{background:#ecfdf5;color:var(--green)}.badge.no{background:#fef2f2;color:var(--red)}.badge.wait{background:#fffbeb;color:var(--accent)}
+.log-item{padding:7px 16px;border-bottom:1px solid var(--bg2);font-size:11px;display:flex;gap:6px;align-items:center}
+.log-item .act{padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;flex-shrink:0}
+.log-item .act.granted{background:#ecfdf5;color:var(--green)}.log-item .act.revoked{background:#fef2f2;color:var(--red)}
+.notif-item{padding:8px 16px;border-bottom:1px solid var(--bg2);font-size:11px;line-height:1.5}
+.access-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;margin:1px}
+.access-tag.has{background:#ecfdf5;color:var(--green)}.access-tag.no{background:var(--bg2);color:var(--text3)}
+.pa-item{padding:10px 16px;border-bottom:1px solid var(--bg2);display:flex;gap:8px;align-items:center}
+.pa-item .info{flex:1;font-size:12px}.pa-item .info b{font-weight:600}.pa-item .info .detail{font-size:11px;color:var(--text3);margin-top:2px}
+.btn-sm{padding:4px 12px;border-radius:6px;border:1px solid;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-a{background:#ecfdf5;color:var(--green);border-color:#a7f3d0}.btn-r{background:#fef2f2;color:var(--red);border-color:#fecaca}
+.empty{padding:16px;text-align:center;color:var(--text3);font-size:11px}
+</style></head><body>
+<div class="header"><div class="dot"></div><span id="company-name">Manager Dashboard</span><a id="chat-link" href="#">Employee Chat</a></div>
+<div class="page">
+  <h2>Access Management Dashboard</h2>
+  <div class="stats">
+    <div class="stat"><div class="num" id="s-users" style="color:var(--blue)">0</div><div class="label">Users</div></div>
+    <div class="stat"><div class="num" id="s-granted" style="color:var(--green)">0</div><div class="label">Granted</div></div>
+    <div class="stat"><div class="num" id="s-pending" style="color:var(--accent)">0</div><div class="label">Pending</div></div>
+    <div class="stat"><div class="num" id="s-tickets" style="color:var(--text)">0</div><div class="label">Tickets</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel"><div class="panel-head">Approval Queue <span class="count" id="aq-c">0</span></div><div id="aq-body" style="max-height:250px;overflow-y:auto"><div class="empty">No pending</div></div></div>
+    <div class="panel"><div class="panel-head">Notifications <span class="count">Live</span></div><div id="notif-body" style="max-height:250px;overflow-y:auto"><div class="empty">No notifications</div></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel"><div class="panel-head">User Access Matrix <span class="count" id="um-c">0</span></div><div style="max-height:250px;overflow-y:auto"><table class="tbl"><thead><tr><th>User</th><th>Division</th><th>GitHub</th><th>Access</th></tr></thead><tbody id="um-body"></tbody></table></div></div>
+    <div class="panel"><div class="panel-head">Access Log</div><div id="log-body" style="max-height:250px;overflow-y:auto"><div class="empty">No activity</div></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel"><div class="panel-head">Tickets <span class="count" id="tk-c">0</span></div><div style="max-height:250px;overflow-y:auto"><table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Description</th><th>Status</th><th>By</th></tr></thead><tbody id="tk-body"></tbody></table></div></div>
+
+    <!-- AI AGENT CHAT -->
+    <div class="panel">
+      <div class="panel-head">Chat with AI Agent</div>
+      <div id="ai-msgs" style="height:200px;overflow-y:auto;padding:12px;background:var(--bg2)">
+        <div style="font-size:11px;color:var(--text2);padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;line-height:1.6">
+          Halo Manager! Tanya saya:<br>
+          • "siapa yang punya akses [repo]?"<br>
+          • "berapa pending approval?"<br>
+          • "rangkum aktivitas hari ini"<br>
+          • "siapa saja yang terdaftar?"
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--border)">
+        <input type="text" id="ai-inp" placeholder="Tanya AI..." style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;outline:none;font-family:inherit"/>
+        <button onclick="sendAI()" style="padding:7px 14px;background:var(--text);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const pathParts=window.location.pathname.split('/');
+const companyId=pathParts[2]||'';
+document.getElementById('chat-link').href='/app/'+companyId+'/chat';
+const repoKeys=[];
+
+async function refresh(){
+  let d;
+  try{const res=await fetch('/api/data?companyId='+companyId);const t=await res.text();d=JSON.parse(t);}catch(e){return;}
+
+  if(d.company){
+    document.getElementById('company-name').textContent=d.company.name+' — Manager Dashboard';
+    d.company.repos.forEach(r=>{if(!repoKeys.includes(r.key))repoKeys.push(r.key);});
+  }
+
+  try{
+    document.getElementById('s-users').textContent=(d.users||[]).length;
+    document.getElementById('s-granted').textContent=(d.accessLog||[]).filter(l=>l.action==='GRANTED').length;
+    document.getElementById('s-pending').textContent=(d.pending||[]).length;
+    document.getElementById('s-tickets').textContent=(d.tickets||[]).length;
+  }catch(e){}
+
+  // Approval queue
+  try{
+    const aq=document.getElementById('aq-body');
+    document.getElementById('aq-c').textContent=(d.pending||[]).length;
+    if(d.pending?.length){aq.innerHTML='';d.pending.forEach(p=>{
+      const div=document.createElement('div');div.className='pa-item';div.id='pa-'+p.id;
+      div.innerHTML='<div class="info"><b>@'+p.github+' → '+p.repo_key+'</b><div class="detail">'+p.user_name+' ('+p.division+')</div></div><div style="display:flex;gap:4px"><button class="btn-sm btn-a">Approve</button><button class="btn-sm btn-r">Reject</button></div>';
+      div.querySelector('.btn-a').addEventListener('click',()=>approvePA(p.id));
+      div.querySelector('.btn-r').addEventListener('click',()=>rejectPA(p.id));
+      aq.appendChild(div);
+    });}else{aq.innerHTML='<div class="empty">No pending</div>';}
+  }catch(e){console.error('AQ:',e);}
+
+  // Notifications
+  try{
+    const nb=document.getElementById('notif-body');
+    const mgr=(d.notifications||[]).filter(n=>n.target==='manager');
+    if(mgr.length){nb.innerHTML='';mgr.slice(0,15).forEach(n=>{nb.innerHTML+='<div class="notif-item">'+n.message+'</div>';});}
+  }catch(e){}
+
+  // User matrix
+  try{
+    const ub=document.getElementById('um-body');ub.innerHTML='';
+    document.getElementById('um-c').textContent=(d.users||[]).length;
+    (d.users||[]).forEach(u=>{
+      const grants=new Set((d.accessLog||[]).filter(l=>l.github===u.github&&l.action==='GRANTED').map(l=>l.repo_key));
+      const tags=repoKeys.map(k=>'<span class="access-tag '+(grants.has(k)?'has':'no')+'">'+k+'</span>').join('');
+      ub.innerHTML+='<tr><td style="font-weight:600">'+u.name+'</td><td style="color:var(--accent)">'+u.division+'</td><td style="color:var(--text3)">@'+u.github+'</td><td>'+tags+'</td></tr>';
+    });
+  }catch(e){}
+
+  // Log
+  try{
+    const lb=document.getElementById('log-body');
+    if(d.accessLog?.length){lb.innerHTML='';d.accessLog.slice(0,15).forEach(l=>{
+      lb.innerHTML+='<div class="log-item"><span class="act '+(l.action==='GRANTED'?'granted':'revoked')+'">'+l.action+'</span>@'+l.github+' → '+l.repo_key+'</div>';
+    });}
+  }catch(e){}
+
+  // Tickets
+  try{
+    const tb=document.getElementById('tk-body');tb.innerHTML='';
+    document.getElementById('tk-c').textContent=(d.tickets||[]).length;
+    (d.tickets||[]).slice(0,15).forEach(t=>{
+      const sc=(t.status==='Resolved'||t.status==='Approved')?'ok':t.status==='Rejected'?'no':'wait';
+      tb.innerHTML+='<tr><td style="color:var(--accent);font-weight:600;font-size:10px">'+t.ticket_id+'</td><td>'+t.type+'</td><td style="color:var(--text2)">'+t.description+'</td><td><span class="badge '+sc+'">'+t.status+'</span></td><td>'+t.requester+'</td></tr>';
+    });
+  }catch(e){}
+}
+
+async function approvePA(id){
+  const el=document.getElementById('pa-'+id);
+  if(el)el.innerHTML='<div style="padding:8px;color:var(--green);font-size:12px">✅ Approved!</div>';
+  await fetch('/api/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paId:id})});
+  setTimeout(refresh,1000);
+}
+async function rejectPA(id){
+  const el=document.getElementById('pa-'+id);
+  if(el)el.innerHTML='<div style="padding:8px;color:var(--red);font-size:12px">❌ Rejected</div>';
+  await fetch('/api/reject',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paId:id})});
+  setTimeout(refresh,1000);
+}
+
+// AI Chat
+const aiInp=document.getElementById('ai-inp');
+aiInp?.addEventListener('keypress',e=>{if(e.key==='Enter')sendAI()});
+async function sendAI(){
+  const t=aiInp.value.trim();if(!t)return;aiInp.value='';
+  const am=document.getElementById('ai-msgs');
+  am.innerHTML+='<div style="text-align:right;margin:6px 0"><span style="background:var(--text);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;display:inline-block">'+t+'</span></div>';
+  am.scrollTop=am.scrollHeight;
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,sessionId:'manager',companyId})});
+    const _t=await res.text();const d=JSON.parse(_t);
+    am.innerHTML+='<div style="margin:6px 0"><span style="background:var(--bg);border:1px solid var(--border);padding:7px 10px;border-radius:8px;font-size:11px;display:inline-block;line-height:1.5">'+(d.response||'Error')+'</span></div>';
+  }catch(e){
+    am.innerHTML+='<div style="margin:6px 0;color:var(--red);font-size:11px">Error</div>';
+  }
+  am.scrollTop=am.scrollHeight;
+}
+
+refresh();setInterval(refresh,3000);
+</script>
+</body></html>
