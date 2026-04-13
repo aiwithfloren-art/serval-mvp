@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Serval — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#f9fafb;color:#111827;min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:#fff;padding:10px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.header .dot{width:8px;height:8px;background:#d97706;border-radius:2px}
+.header a{margin-left:auto;font-size:11px;color:#4b5563;text-decoration:none;padding:4px 12px;border:1px solid #e5e7eb;border-radius:6px}
+.page{max-width:700px;margin:0 auto;padding:24px}
+h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.sub{font-size:13px;color:#4b5563;margin-bottom:20px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h3{font-size:15px;font-weight:600;margin-bottom:12px}
+.repo-row{display:flex;gap:8px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;align-items:center;font-size:12px;flex-wrap:wrap}
+.repo-row .rname{font-weight:600;min-width:140px}
+.repo-row select,.repo-row input[type=text]{padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px;font-family:inherit}
+.repo-row label{font-size:11px;display:flex;align-items:center;gap:4px}
+.repo-row .remove{color:#dc2626;cursor:pointer;font-size:11px;margin-left:auto}
+.btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:none}
+.btn-primary{background:#111827;color:#fff}.btn-primary:hover{background:#000}
+.btn-secondary{background:#f9fafb;color:#374151;border:1px solid #e5e7eb}
+.status{margin-top:12px;font-size:13px;display:none}
+</style></head><body>
+<div class="header"><div class="dot"></div><span id="company-name">Settings</span><a id="mgr-link" href="#">← Back to Dashboard</a></div>
+<div class="page">
+  <h2>Settings</h2>
+  <div class="sub">Edit repos, policies, and access rules</div>
+
+  <div class="card">
+    <h3>Repository Policies</h3>
+    <div id="repo-list"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+      <button class="btn btn-secondary" onclick="loadSettings()">Reset</button>
+    </div>
+    <div class="status" id="save-status"></div>
+  </div>
+
+  <div class="card">
+    <h3>Company Info</h3>
+    <div style="font-size:13px;color:#4b5563;line-height:2" id="company-info">Loading...</div>
+  </div>
+</div>
+
+<script>
+const pathParts=window.location.pathname.split('/');
+const companyId=pathParts[2]||'';
+document.getElementById('mgr-link').href='/app/'+companyId+'/manager';
+let currentRepos=[];
+
+async function loadSettings(){
+  try{
+    const res=await fetch('/api/data?companyId='+companyId);
+    const t=await res.text();const d=JSON.parse(t);
+    if(!d.company)return;
+    document.getElementById('company-name').textContent=d.company.name+' — Settings';
+    document.getElementById('company-info').innerHTML='<b>Company:</b> '+d.company.name+'<br><b>GitHub:</b> '+d.company.github_org+'<br><b>Repos:</b> '+d.company.repos.length;
+
+    currentRepos=d.company.repos;
+    renderRepos();
+  }catch(e){}
+}
+
+function renderRepos(){
+  const list=document.getElementById('repo-list');
+  list.innerHTML='';
+  currentRepos.forEach((r,i)=>{
+    const depts=JSON.parse(r.departments||'[]');
+    const div=document.createElement('div');div.className='repo-row';
+    div.innerHTML='<span class="rname">'+r.github_name+'</span>'+
+      '<select id="dept-'+i+'"><option value="Engineering" '+(depts.includes('Engineering')?'selected':'')+'>Engineering</option><option value="Marketing" '+(depts.includes('Marketing')?'selected':'')+'>Marketing</option><option value="Data" '+(depts.includes('Data')?'selected':'')+'>Data</option><option value="Design" '+(depts.includes('Design')?'selected':'')+'>Design</option><option value="*" '+(depts.includes('*')?'selected':'')+'>Everyone</option></select>'+
+      '<label><input type="checkbox" id="appr-'+i+'" '+(r.requires_approval?'checked':'')+'/> Needs Approval</label>'+
+      '<input type="text" id="approver-'+i+'" placeholder="Approver" value="'+(r.approver||'')+'" style="width:100px"/>'+
+      '<span class="remove" onclick="removeRepo('+i+')">Remove</span>';
+    list.appendChild(div);
+  });
+}
+
+function removeRepo(i){currentRepos.splice(i,1);renderRepos();}
+
+async function saveSettings(){
+  const status=document.getElementById('save-status');
+  const pw=prompt('Enter manager password to save:');
+  if(!pw)return;
+
+  const repos=currentRepos.map((r,i)=>({
+    key:r.key||r.github_name,
+    github_name:r.github_name,
+    description:r.description||r.github_name,
+    departments:[document.getElementById('dept-'+i)?.value||'*'],
+    requires_approval:document.getElementById('appr-'+i)?.checked||false,
+    approver:document.getElementById('approver-'+i)?.value||''
+  }));
+
+  try{
+    const res=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,password:pw,repos})});
+    const t=await res.text();const d=JSON.parse(t);
+    if(d.success){status.textContent='✅ Saved! '+d.repoCount+' repos updated.';status.style.color='#059669';}
+    else{status.textContent='❌ '+(d.error||'Failed');status.style.color='#dc2626';}
+    status.style.display='block';
+    setTimeout(()=>{status.style.display='none'},3000);
+  }catch(e){status.textContent='Error';status.style.color='#dc2626';status.style.display='block';}
+}
+
+loadSettings();
+</script>
+</body></html>

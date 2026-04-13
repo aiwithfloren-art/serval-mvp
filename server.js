@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const db = require('./db');
+require('./migrate');
 const gh = require('./github');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
@@ -304,6 +305,41 @@ const server = http.createServer(async (req, res) => {
     }); return;
   }
 
+  // Reset password (by email — sets new password)
+  if (req.method === 'POST' && url.pathname === '/api/reset-password') {
+    let body=''; req.on('data',c=>body+=c); req.on('end',()=>{
+      try {
+        const { email, github_org, new_password } = JSON.parse(body);
+        if (!email || !new_password || !github_org) { res.writeHead(400, jsonHead); res.end('{"error":"Missing fields"}'); return; }
+        const company = db.prepare('SELECT * FROM companies WHERE admin_email=? AND github_org=?').get(email, github_org);
+        if (!company) { res.writeHead(200, jsonHead); res.end('{"success":false,"error":"Email + GitHub org not found"}'); return; }
+        db.prepare('UPDATE companies SET manager_password=? WHERE id=?').run(new_password, company.id);
+        res.writeHead(200, jsonHead);
+        res.end(JSON.stringify({ success: true }));
+      } catch(e) { res.writeHead(400, jsonHead); res.end('{"success":false}'); }
+    }); return;
+  }
+
+  // Update company settings (repos, policies)
+  if (req.method === 'POST' && url.pathname === '/api/settings') {
+    let body=''; req.on('data',c=>body+=c); req.on('end', async ()=>{
+      try {
+        const { companyId, password, repos: repoList } = JSON.parse(body);
+        const company = db.prepare('SELECT * FROM companies WHERE id=?').get(companyId);
+        if (!company || company.manager_password !== password) { res.writeHead(403, jsonHead); res.end('{"error":"Unauthorized"}'); return; }
+        if (repoList) {
+          db.prepare('DELETE FROM repos WHERE company_id=?').run(companyId);
+          const insert = db.prepare('INSERT INTO repos (company_id, key, github_name, description, departments, requires_approval, approver) VALUES (?,?,?,?,?,?,?)');
+          for (const r of repoList) {
+            insert.run(companyId, r.key, r.github_name, r.description || '', JSON.stringify(r.departments || []), r.requires_approval ? 1 : 0, r.approver || '');
+          }
+        }
+        res.writeHead(200, jsonHead);
+        res.end(JSON.stringify({ success: true, repoCount: (repoList||[]).length }));
+      } catch(e) { res.writeHead(400, jsonHead); res.end(JSON.stringify({error:e.message})); }
+    }); return;
+  }
+
   // Get company data (for dashboard)
   if (req.method === 'GET' && url.pathname === '/api/data') {
     const cid = url.searchParams.get('companyId');
@@ -347,6 +383,7 @@ const server = http.createServer(async (req, res) => {
     const company = getCompany(companyId);
     if (!company) { res.end('<h1>Company not found</h1>'); return; }
     if (subpage === 'manager') { res.end(fs.readFileSync(path.join(__dirname, 'views/manager.html'), 'utf8')); return; }
+    if (subpage === 'settings') { res.end(fs.readFileSync(path.join(__dirname, 'views/settings.html'), 'utf8')); return; }
     res.end(fs.readFileSync(path.join(__dirname, 'views/chat.html'), 'utf8'));
     return;
   }

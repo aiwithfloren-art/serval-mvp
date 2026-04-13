@@ -36,7 +36,7 @@ h2{font-size:20px;font-weight:700;margin-bottom:16px}
 .btn-a{background:#ecfdf5;color:var(--green);border-color:#a7f3d0}.btn-r{background:#fef2f2;color:var(--red);border-color:#fecaca}
 .empty{padding:16px;text-align:center;color:var(--text3);font-size:11px}
 </style></head><body>
-<div class="header"><div class="dot"></div><span id="company-name">Manager Dashboard</span><a id="chat-link" href="#">Employee Chat</a></div>
+<div class="header"><div class="dot"></div><span id="company-name">Manager Dashboard</span><a id="settings-link" href="#" style="margin-left:auto;font-size:11px;color:#4b5563;text-decoration:none;padding:4px 12px;border:1px solid #e5e7eb;border-radius:6px">⚙️ Settings</a><a id="chat-link" href="#" style="font-size:11px;color:#4b5563;text-decoration:none;padding:4px 12px;border:1px solid #e5e7eb;border-radius:6px;margin-left:6px">Employee Chat</a></div>
 
 <!-- LOGIN GATE -->
 <div id="login-gate" style="position:fixed;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:100">
@@ -97,6 +97,7 @@ h2{font-size:20px;font-weight:700;margin-bottom:16px}
 const pathParts=window.location.pathname.split('/');
 const companyId=pathParts[2]||'';
 document.getElementById('chat-link').href='/app/'+companyId+'/chat';
+document.getElementById('settings-link').href='/app/'+companyId+'/settings';
 const repoKeys=[];
 
 // Check if already logged in

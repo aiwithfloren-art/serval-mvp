@@ -38,7 +38,22 @@ h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
       <a id="link-mgr" href="#" style="background:#f9fafb;color:#111827;border:1px solid #e5e7eb">Manager Dashboard →</a>
     </div>
   </div>
-  <div class="links"><a href="/setup">Don't have an account? Setup →</a></div>
+  <!-- RESET PASSWORD -->
+  <div id="reset-section" style="display:none;margin-top:16px">
+    <div class="card">
+      <h2 style="font-size:16px;margin-bottom:8px">Reset Password</h2>
+      <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="you@company.com"/></div>
+      <div class="fg"><label>GitHub Org (for verification)</label><input type="text" id="r-org" placeholder="Your GitHub org/username"/></div>
+      <div class="fg"><label>New Password</label><input type="password" id="r-newpw" placeholder="New password"/></div>
+      <button class="btn" onclick="resetPassword()">Reset Password</button>
+      <div id="r-status" style="font-size:12px;margin-top:8px;display:none"></div>
+    </div>
+  </div>
+  <div class="links">
+    <a href="#" onclick="document.getElementById('reset-section').style.display='block';return false">Forgot password?</a>
+    &nbsp;·&nbsp;
+    <a href="/setup">Don't have an account? Setup →</a>
+  </div>
 </div>
 <script>
 document.getElementById('l-pw').addEventListener('keypress',e=>{if(e.key==='Enter')login()});
@@ -72,6 +87,21 @@ async function login(){
       err.style.display='block';
     }
   }catch(e){err.textContent='Connection error';err.style.display='block';}
+}
+
+async function resetPassword(){
+  const email=document.getElementById('r-email').value.trim();
+  const org=document.getElementById('r-org').value.trim();
+  const newpw=document.getElementById('r-newpw').value;
+  const status=document.getElementById('r-status');
+  if(!email||!org||!newpw){status.textContent='Fill all fields';status.style.color='#dc2626';status.style.display='block';return;}
+  try{
+    const res=await fetch('/api/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,github_org:org,new_password:newpw})});
+    const t=await res.text();const d=JSON.parse(t);
+    if(d.success){status.textContent='✅ Password reset! You can login now.';status.style.color='#059669';}
+    else{status.textContent=d.error||'Failed';status.style.color='#dc2626';}
+    status.style.display='block';
+  }catch(e){status.textContent='Error';status.style.color='#dc2626';status.style.display='block';}
 }
 </script>
 </body></html>
