@@ -82,6 +82,7 @@ body{font-family:'Inter',sans-serif;background:#f9fafb;color:#111827;min-height:
       <div class="fg">
         <label>Manager Password</label>
         <input type="password" id="s-password" placeholder="Set password for Manager Dashboard"/>
+        <span onclick="var p=document.getElementById('s-password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide'" style="font-size:11px;color:#d97706;cursor:pointer;margin-top:2px;display:inline-block">Show</span>
         <div class="hint">Anyone with this password can access the Manager Dashboard (approve/reject, view all data)</div>
       </div>
 

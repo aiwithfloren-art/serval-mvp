@@ -29,7 +29,7 @@ h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
   <div class="sub">Login with your email and password</div>
   <div class="card">
     <div class="fg"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com"/></div>
-    <div class="fg"><label>Password</label><input type="password" id="l-pw" placeholder="Password"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="l-pw" placeholder="Password"/><span onclick="var p=document.getElementById('l-pw');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide'" style="font-size:11px;color:#d97706;cursor:pointer;margin-top:2px;display:inline-block">Show</span></div>
     <button class="btn" onclick="login()">Login →</button>
     <div class="error" id="l-error"></div>
     <div class="success" id="l-success">
@@ -44,7 +44,7 @@ h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
       <h2 style="font-size:16px;margin-bottom:8px">Reset Password</h2>
       <div class="fg"><label>Email</label><input type="email" id="r-email" placeholder="you@company.com"/></div>
       <div class="fg"><label>GitHub Org (for verification)</label><input type="text" id="r-org" placeholder="Your GitHub org/username"/></div>
-      <div class="fg"><label>New Password</label><input type="password" id="r-newpw" placeholder="New password"/></div>
+      <div class="fg"><label>New Password</label><input type="password" id="r-newpw" placeholder="New password"/><span onclick="var p=document.getElementById('r-newpw');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide'" style="font-size:11px;color:#d97706;cursor:pointer;margin-top:2px;display:inline-block">Show</span></div>
       <button class="btn" onclick="resetPassword()">Reset Password</button>
       <div id="r-status" style="font-size:12px;margin-top:8px;display:none"></div>
     </div>

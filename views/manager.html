@@ -45,7 +45,8 @@ h2{font-size:20px;font-weight:700;margin-bottom:16px}
     <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Manager Login</h2>
     <p style="font-size:13px;color:#4b5563;margin-bottom:16px">Enter your email and password</p>
     <input type="email" id="mgr-email" placeholder="Email" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px"/>
-    <input type="password" id="mgr-pw" placeholder="Password" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px"/>
+    <input type="password" id="mgr-pw" placeholder="Password" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:4px"/>
+    <div style="text-align:right;margin-bottom:8px"><span onclick="var p=document.getElementById('mgr-pw');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide'" style="font-size:11px;color:#d97706;cursor:pointer">Show</span></div>
     <div id="pw-error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none">Wrong email or password</div>
     <button onclick="verifyPassword()" style="width:100%;padding:11px;background:#111827;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Login →</button>
   </div>
