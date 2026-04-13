@@ -214,6 +214,8 @@ async function step2Next() {
     const t = await res.text(); const d = JSON.parse(t);
 
     if (d.success) {
+      localStorage.setItem('serval_last_company', d.companyId);
+      localStorage.setItem('serval_last_role', 'admin');
       const base = window.location.origin;
       document.getElementById('link-chat').href = base+'/app/'+d.companyId+'/chat';
       document.getElementById('link-manager').href = base+'/app/'+d.companyId+'/manager';
