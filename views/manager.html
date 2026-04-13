@@ -43,9 +43,10 @@ h2{font-size:20px;font-weight:700;margin-bottom:16px}
   <div style="background:#fff;border-radius:14px;padding:28px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center">
     <div style="font-size:28px;margin-bottom:12px">🔒</div>
     <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Manager Login</h2>
-    <p style="font-size:13px;color:#4b5563;margin-bottom:16px">Enter password to access the dashboard</p>
-    <input type="password" id="mgr-pw" placeholder="Password" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;text-align:center"/>
-    <div id="pw-error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none">Wrong password</div>
+    <p style="font-size:13px;color:#4b5563;margin-bottom:16px">Enter your email and password</p>
+    <input type="email" id="mgr-email" placeholder="Email" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px"/>
+    <input type="password" id="mgr-pw" placeholder="Password" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px"/>
+    <div id="pw-error" style="color:#dc2626;font-size:12px;margin-bottom:8px;display:none">Wrong email or password</div>
     <button onclick="verifyPassword()" style="width:100%;padding:11px;background:#111827;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Login →</button>
   </div>
 </div>
@@ -103,14 +104,19 @@ const mgrAuth = localStorage.getItem('serval_mgr_'+companyId);
 if(mgrAuth === 'ok') unlockDashboard();
 
 document.getElementById('mgr-pw')?.addEventListener('keypress',e=>{if(e.key==='Enter')verifyPassword()});
+const lastEmail = localStorage.getItem('serval_last_email');
+if(lastEmail) document.getElementById('mgr-email').value = lastEmail;
 
 async function verifyPassword(){
+  const email = document.getElementById('mgr-email').value.trim();
   const pw = document.getElementById('mgr-pw').value;
+  if(!email||!pw){document.getElementById('pw-error').style.display='block';return;}
   try{
-    const res = await fetch('/api/verify-manager',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,password:pw})});
+    const res = await fetch('/api/verify-manager',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,email,password:pw})});
     const t = await res.text(); const d = JSON.parse(t);
     if(d.success){
       localStorage.setItem('serval_mgr_'+companyId, 'ok');
+      localStorage.setItem('serval_last_email', email);
       unlockDashboard();
     } else {
       document.getElementById('pw-error').style.display='block';

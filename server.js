@@ -176,14 +176,18 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/setup') {
     let body=''; req.on('data',c=>body+=c); req.on('end', async()=>{
       try {
-        const { name, github_org, github_token, manager_password, repos: repoList } = JSON.parse(body);
-        if (!name || !github_org || !github_token) { res.writeHead(400, jsonHead); res.end('{"error":"Missing fields"}'); return; }
+        const { name, github_org, github_token, admin_email, manager_password, repos: repoList } = JSON.parse(body);
+        if (!name || !github_org || !github_token || !admin_email || !manager_password) { res.writeHead(400, jsonHead); res.end('{"error":"Missing fields"}'); return; }
+
+        // Check email not already used
+        const existing = db.prepare('SELECT id FROM companies WHERE admin_email=?').get(admin_email);
+        if (existing) { res.writeHead(400, jsonHead); res.end('{"error":"Email already registered"}'); return; }
 
         // Validate GitHub token
         const valid = await gh.validateToken(github_token, github_org);
 
         const companyId = genId();
-        db.prepare('INSERT INTO companies (id, name, github_org, github_token, manager_password) VALUES (?,?,?,?,?)').run(companyId, name, github_org, github_token, manager_password || '');
+        db.prepare('INSERT INTO companies (id, name, github_org, github_token, admin_email, manager_password) VALUES (?,?,?,?,?,?)').run(companyId, name, github_org, github_token, admin_email, manager_password);
 
         // Add repos
         if (repoList && repoList.length) {
@@ -281,16 +285,21 @@ const server = http.createServer(async (req, res) => {
     }); return;
   }
 
-  // Verify manager password
+  // Verify manager — by companyId+password OR email+password
   if (req.method === 'POST' && url.pathname === '/api/verify-manager') {
     let body=''; req.on('data',c=>body+=c); req.on('end',()=>{
       try {
-        const { companyId, password } = JSON.parse(body);
-        const company = db.prepare('SELECT manager_password FROM companies WHERE id=?').get(companyId);
-        if (!company) { res.writeHead(404, jsonHead); res.end('{"error":"not found"}'); return; }
-        const ok = !company.manager_password || company.manager_password === password;
+        const { companyId, email, password } = JSON.parse(body);
+        let company;
+        if (email) {
+          company = db.prepare('SELECT * FROM companies WHERE admin_email=?').get(email);
+        } else if (companyId) {
+          company = db.prepare('SELECT * FROM companies WHERE id=?').get(companyId);
+        }
+        if (!company) { res.writeHead(200, jsonHead); res.end('{"success":false,"error":"not found"}'); return; }
+        const ok = company.manager_password === password;
         res.writeHead(200, jsonHead);
-        res.end(JSON.stringify({ success: ok }));
+        res.end(JSON.stringify({ success: ok, companyId: ok ? company.id : undefined, companyName: ok ? company.name : undefined }));
       } catch(e) { res.writeHead(400, jsonHead); res.end('{"success":false}'); }
     }); return;
   }

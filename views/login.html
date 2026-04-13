@@ -5,78 +5,73 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',sans-serif;background:#f9fafb;color:#111827;min-height:100vh;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
-.box{max-width:400px;width:90%;padding:0 24px}
-.brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:32px;font-size:16px;font-weight:700}
+.box{max-width:380px;width:90%}
+.brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:28px;font-size:16px;font-weight:700}
 .brand .dot{width:8px;height:8px;background:#d97706;border-radius:2px}
-h1{font-size:24px;font-weight:700;text-align:center;margin-bottom:8px}
-.sub{text-align:center;font-size:13px;color:#4b5563;margin-bottom:24px}
+h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;font-size:13px;color:#4b5563;margin-bottom:20px}
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:4px}
-.fg input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.fg input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;outline:none;font-family:inherit}
 .fg input:focus{border-color:#d97706}
-.fg .hint{font-size:11px;color:#9ca3af;margin-top:3px}
-.btn{width:100%;padding:12px;background:#111827;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px}
+.btn{width:100%;padding:12px;background:#111827;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
 .btn:hover{background:#000}
 .error{color:#dc2626;font-size:12px;margin-top:8px;display:none;text-align:center}
+.success{margin-top:16px;padding:14px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;display:none;text-align:center}
+.success a{display:inline-block;margin:6px 4px;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600}
 .links{text-align:center;margin-top:16px;font-size:13px}
 .links a{color:#d97706;text-decoration:none}
 </style></head><body>
 <div class="box">
   <div class="brand"><div class="dot"></div>Serval</div>
-  <h1>Login</h1>
-  <div class="sub">Access your company's dashboard</div>
+  <h1>Welcome back</h1>
+  <div class="sub">Login with your email and password</div>
   <div class="card">
-    <div class="fg">
-      <label>Company ID</label>
-      <input type="text" id="l-id" placeholder="e.g. c_mnwp75jf4gq9"/>
-      <div class="hint">From your setup confirmation email/page</div>
-    </div>
-    <div class="fg">
-      <label>Manager Password</label>
-      <input type="password" id="l-pw" placeholder="Password set during setup"/>
-    </div>
+    <div class="fg"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="l-pw" placeholder="Password"/></div>
     <button class="btn" onclick="login()">Login →</button>
-    <div class="error" id="l-error">Invalid company ID or password</div>
+    <div class="error" id="l-error"></div>
+    <div class="success" id="l-success">
+      <div style="font-size:14px;font-weight:600;color:#059669;margin-bottom:8px">✅ Login successful!</div>
+      <a id="link-chat" href="#" style="background:#111827;color:#fff">Employee Chat →</a>
+      <a id="link-mgr" href="#" style="background:#f9fafb;color:#111827;border:1px solid #e5e7eb">Manager Dashboard →</a>
+    </div>
   </div>
-  <div class="links">
-    <a href="/setup">Don't have an account? Setup →</a>
-  </div>
+  <div class="links"><a href="/setup">Don't have an account? Setup →</a></div>
 </div>
 <script>
 document.getElementById('l-pw').addEventListener('keypress',e=>{if(e.key==='Enter')login()});
-
-// Check if previously logged in
-const lastCompany = localStorage.getItem('serval_last_company');
-if(lastCompany) document.getElementById('l-id').value = lastCompany;
+const lastEmail = localStorage.getItem('serval_last_email');
+if(lastEmail) document.getElementById('l-email').value = lastEmail;
 
 async function login(){
-  const id = document.getElementById('l-id').value.trim();
+  const email = document.getElementById('l-email').value.trim();
   const pw = document.getElementById('l-pw').value;
-  if(!id){document.getElementById('l-error').style.display='block';document.getElementById('l-error').textContent='Enter Company ID';return;}
+  const err = document.getElementById('l-error');
+  err.style.display='none';
+
+  if(!email||!pw){err.textContent='Fill all fields';err.style.display='block';return;}
 
   try{
     const res = await fetch('/api/verify-manager',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({companyId:id, password:pw})
+      body:JSON.stringify({email, password:pw})
     });
     const t = await res.text(); const d = JSON.parse(t);
     if(d.success){
-      localStorage.setItem('serval_mgr_'+id, 'ok');
-      localStorage.setItem('serval_last_company', id);
-      // Redirect to choose view
-      window.location.href = '/app/'+id+'/manager';
-    } else if(d.error === 'not found'){
-      document.getElementById('l-error').textContent='Company not found';
-      document.getElementById('l-error').style.display='block';
+      localStorage.setItem('serval_last_company', d.companyId);
+      localStorage.setItem('serval_last_email', email);
+      localStorage.setItem('serval_mgr_'+d.companyId, 'ok');
+      // Show links
+      document.getElementById('link-chat').href = '/app/'+d.companyId+'/chat';
+      document.getElementById('link-mgr').href = '/app/'+d.companyId+'/manager';
+      document.getElementById('l-success').style.display='block';
     } else {
-      document.getElementById('l-error').textContent='Wrong password';
-      document.getElementById('l-error').style.display='block';
+      err.textContent = d.error === 'not found' ? 'Email not registered' : 'Wrong password';
+      err.style.display='block';
     }
-  }catch(e){
-    document.getElementById('l-error').textContent='Connection error';
-    document.getElementById('l-error').style.display='block';
-  }
+  }catch(e){err.textContent='Connection error';err.style.display='block';}
 }
 </script>
 </body></html>
